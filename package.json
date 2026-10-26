@@ -1,6 +1,6 @@
 {
   "name": "@powercess/yuketang-mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "雨课堂（Yuketang）MCP 服务器：扫码登录，读取课程/课件/课堂回顾/AI 思维导图/回放时间线/作业进度，供 AI 助手直接调用",
   "type": "module",
   "license": "MIT",
