@@ -1,9 +1,13 @@
-# 发布到 npmjs。
-# 认证二选一：
-#   A. npmjs Trusted Publishing（推荐）：在 npmjs 上为本仓库启用 OIDC 发布授权，
-#      本 workflow 无需任何 token，--provenance 自动走 OIDC。
-#   B. 传统方式：仓库 Secrets 配置 NPM_TOKEN（Publish 权限），并在下方 publish 步骤
-#      恢复 env: { NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} }。
+# 发布到 npmjs，通过 Trusted Publishing（OIDC），无需任何 token。
+#
+# 前置条件（在 npmjs.com 上为 @powercess/yuketang-mcp 配置一次）：
+#   Settings → Trusted Publisher → GitHub Actions
+#     Organization or user: powercess
+#     Repository:           yuketang-mcp
+#     Workflow filename:    publish.yml
+#     Allowed actions:      npm publish（勾选后才能直接发布；不勾选则只能 stage publish）
+#
+# 打 tag 触发：git push --follow-tags
 name: Publish to npm
 
 on:
@@ -11,12 +15,13 @@ on:
     tags: ["v*"]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  id-token: write # OIDC：换取短期发布令牌，并自动生成 provenance
+
 jobs:
   publish:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write # npm provenance（OIDC 发布签名）
     steps:
       - uses: actions/checkout@v4
 
@@ -24,8 +29,10 @@ jobs:
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org/
+          package-manager-cache: false
 
       - name: Verify tag matches package version
+        if: startsWith(github.ref, 'refs/tags/v')
         run: |
           TAG="${GITHUB_REF_NAME#v}"
           PKG="$(node -p "require('./package.json').version")"
@@ -37,5 +44,7 @@ jobs:
       - name: Test and build
         run: npm test
 
+      # Trusted Publishing 下 provenance 自动生成，无需 --provenance 标志。
+      # NPM_CONFIG_PROVENANCE 保持默认（开启）。
       - name: Publish to npm
-        run: npm publish --provenance --access public
+        run: npm publish --access public
