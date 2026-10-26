@@ -1,0 +1,18 @@
+# 依赖
+node_modules/
+
+# 构建产物
+dist/
+*.tsbuildinfo
+
+# 本地会话凭据：含雨课堂 sessionid，绝不提交。改用环境变量或 ~/.yuketang-mcp/
+yuketang.config.json
+.env
+.env.*
+!.env.example
+
+# 日志与系统杂项
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
